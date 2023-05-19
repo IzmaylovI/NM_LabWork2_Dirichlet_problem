@@ -17,9 +17,13 @@ namespace NumericalMethods_interface
     {
         Random rand = new Random();
         DataTable values;
+
+        global_data data = new global_data();
+
         string path_prog = "NumericalMethods_Lab2.exe";
         string path_input = "input.txt";
         string path_output = "result.txt";
+        string path_graph = "3d_graph.py";
         public Form1()
         {
             InitializeComponent();
@@ -33,15 +37,24 @@ namespace NumericalMethods_interface
             data.d = 3;
             data.area = "1";
             data.area_x = data.area_y = 1;
-            data.param = 1.0;
-            if (!int.TryParse(textBox_count.Text, out data.nmax)) MessageBox.Show("Incorrect N_max");
-            else if (!double.TryParse(textBox_eps.Text, out data.eps)) MessageBox.Show("Incorrect eps");
+            int nmax1, nmax2;
+            double eps1, eps2;
+            double param;
+            if (!int.TryParse(textBox_Nmax1.Text, out nmax1)) MessageBox.Show("Incorrect N_max1");
+            else if (!int.TryParse(textBox_Nmax2.Text, out nmax2)) MessageBox.Show("Incorrect N_max2");
+            else if (!double.TryParse(textBox_eps1.Text, out eps1)) MessageBox.Show("Incorrect eps1");
+            else if (!double.TryParse(textBox_eps2.Text, out eps2)) MessageBox.Show("Incorrect eps2");
             else if (!int.TryParse(textBox_n.Text, out data.n)) MessageBox.Show("Incorrect n");
             else if (!int.TryParse(textBox_m.Text, out data.m)) MessageBox.Show("Incorrect m");
             else if (comboBox2.SelectedIndex < 0) MessageBox.Show("Incorrect task");
-            else if (!double.TryParse(textBox_param.Text, out data.param)) MessageBox.Show("Incorrect param");
+            else if (!double.TryParse(textBox_param.Text, out param)) MessageBox.Show("Incorrect param");
             else
             {
+                data.nmax.Add(nmax1);
+                data.nmax.Add(nmax2);
+                data.eps.Add(eps1);
+                data.eps.Add(eps2);
+                data.param.Add(param);
                 data.test = (comboBox2.SelectedIndex == 0);
                 return true;
             }
@@ -51,9 +64,8 @@ namespace NumericalMethods_interface
         {
             try
             {
-                global_data data = new global_data();
+                data = new global_data();
                 if (parseParams(data)) {
-                    //MessageBox.Show(data.b.ToString());
                     string json = JsonConvert.SerializeObject(data);
                     FileStream fs = File.Open(path_input, FileMode.Create, FileAccess.Write);
                     fs.SetLength(0);
@@ -92,22 +104,21 @@ namespace NumericalMethods_interface
             info.CreateNoWindow = true;
             info.UseShellExecute = false;
             StreamReader sr;
-            Task<string> task = null;
+            //Task<string> task = null;
 
 
             Process p = Process.Start(info);
             sr = p.StandardOutput;
-            while ((!p.HasExited) || (!p.StandardOutput.EndOfStream))
+            while ((!p.HasExited))
             {
                 if (backgroundWorker1.CancellationPending) { p.Kill(); e.Cancel = true; return; };
-                if (task == null) task = p.StandardOutput.ReadLineAsync();
+                /*if (task == null) task = p.StandardOutput.ReadLineAsync();
                 if (task != null && task.IsCompleted) {
                     double stage = double.Parse(task.Result.Replace('.', ','));
                     task = null;
                     backgroundWorker1.ReportProgress(Clamp((int)(stage * 100), 0, 100));
-                }
+                }*/
             }
-
             p.WaitForExit();
             if (p.ExitCode != 0) throw new Exception(p.StandardError.ReadLine());
 
@@ -120,23 +131,81 @@ namespace NumericalMethods_interface
             textBox_ref.Text += String.Format("\r\n");
             textBox_ref.Text += String.Format("«Для решения тестовой задачи использованы сетка\r\n");
             textBox_ref.Text += String.Format("с числом разбиений по x n = {0}\tи числом разбиений по y m = {1},\r\n", ans.n, ans.m);
-            textBox_ref.Text += String.Format("Использован {0} с параметром ω = {1}\r\n", "метод верхней релаксации", ans.param);
+            textBox_ref.Text += String.Format("Использован {0} с параметром ω = {1}\r\n", "метод верхней релаксации", ans.param[0]);
             textBox_ref.Text += String.Format("Применены критерии остановки:\r\n");
-            textBox_ref.Text += String.Format(" по точности εмет = {0:e2}\r\n", ans.eps);
-            textBox_ref.Text += String.Format(" по числу итераций Nmax = {0}\r\n", ans.nmax);
+            textBox_ref.Text += String.Format(" по точности εмет = {0:e2}\r\n", ans.eps[0]);
+            textBox_ref.Text += String.Format(" по числу итераций Nmax = {0}\r\n", ans.nmax[0]);
             textBox_ref.Text += String.Format("\r\n");
-            textBox_ref.Text += String.Format("На решение схемы (СЛАУ) затрачено итераций N = {0} \r\n", ans.N);
-            textBox_ref.Text += String.Format("и достигнута точность итерационного метода ε(N) = {0:e3}\r\n", ans.acc);
+            textBox_ref.Text += String.Format("На решение схемы (СЛАУ) затрачено итераций N = {0} \r\n", ans.N[0]);
+            textBox_ref.Text += String.Format("и достигнута точность итерационного метода ε(N) = {0:e3}\r\n", ans.acc[0]);
             textBox_ref.Text += String.Format("\r\n");
-            textBox_ref.Text += String.Format("Схема (СЛАУ) решена с невязкой ||R(N)|| = {0:e3} по {1}\r\n", ans.R, "норме max");
+            textBox_ref.Text += String.Format("Схема (СЛАУ) решена с невязкой ||R(N)|| = {0:e3} по {1}\r\n", ans.R[0], "норме max");
             textBox_ref.Text += String.Format("для невязки СЛАУ использована {0}\r\n", "норма max");
             textBox_ref.Text += String.Format("\r\n");
             textBox_ref.Text += String.Format("Тестовая задача должна быть решена с погрешностью не более ε = 0.5*10^–6;\r\n");
             textBox_ref.Text += String.Format("задача решена с погрешностью ε1 = {0:e3}\r\n", ans.err);
             textBox_ref.Text += String.Format("\r\n");
-            textBox_ref.Text += String.Format("Максимальное отклонение точного и численного решений наблюдается в узле x = {0:f3}; y = {1:f3}\r\n", ans.x, ans.y);
+            textBox_ref.Text += String.Format("Максимальное отклонение точного и численного решений наблюдается в узле x = {0:f3}; y = {1:f3}\r\n", ans.x_err, ans.y_err);
             textBox_ref.Text += String.Format("\r\n");
             textBox_ref.Text += String.Format("В качестве начального приближения использовано {0}\r\n", "интерполяция по x");
+        }
+
+        private void print_ref_for_basic_task(answer ans) {
+            textBox_ref.Text = "";
+            textBox_ref.Text += String.Format("Справка для основной задачи\r\n");
+            textBox_ref.Text += String.Format("\r\n");
+            textBox_ref.Text += String.Format("«Для решения основной задачи использована сетка с числом разбиений по x\r\n");
+            textBox_ref.Text += String.Format("n = {0} и числом разбиений по y m = {1}\r\n", ans.n, ans.m);
+            textBox_ref.Text += String.Format("метод верхней релаксации с параметром ω = {0}, применены критерии остановки по точности εмет = {1}\r\n", ans.param[0], ans.eps[0]);
+            textBox_ref.Text += String.Format("и по числу итераций Nmax = {0}\r\n", ans.nmax[0]);
+            textBox_ref.Text += String.Format("\r\n");
+            textBox_ref.Text += String.Format("На решение схемы (СЛАУ) затрачено итераций N = {0} и достигнута точность итерационного метода ε(N) = {1}\r\n", ans.N[0], ans.acc[0]);
+            textBox_ref.Text += String.Format("\r\n");
+            textBox_ref.Text += String.Format("Схема (СЛАУ) решена с невязкой ||R(N)|| = {0} использована {1}\r\n", ans.R[0], "норма max");
+            textBox_ref.Text += String.Format("\r\n");
+            textBox_ref.Text += String.Format("Для контроля точности решения использована сетка с половинным шагом\r\n");
+            textBox_ref.Text += String.Format("метод верхней релаксации с параметром ω2 = {0},\r\n", ans.param[0]);
+            textBox_ref.Text += String.Format("применены критерии остановки по точности εмет-2 = {0} и по числу итераций Nmax-2 = {1}\r\n", ans.eps[1], ans.nmax[1]);
+            textBox_ref.Text += String.Format("\r\n");
+            textBox_ref.Text += String.Format("На решение задачи (СЛАУ) затрачено итераций N2 = {0} и достигнута точность итерационного метода ε(N2) = {1}\r\n", ans.N[1], ans.acc[1]);
+            textBox_ref.Text += String.Format("Схема (СЛАУ) на сетке с половинным шагом решена с невязкой ||R(N2)|| = {0} использована норма {1}\r\n", ans.R[1], "норма max");
+            textBox_ref.Text += String.Format("\r\n");
+            textBox_ref.Text += String.Format("Основная задача должна быть решена с точностью не хуже чем ε = 0.5⋅10 –6;\r\n");
+            textBox_ref.Text += String.Format("задача решена с точностью ε2 = {0}\r\n", ans.err);
+            textBox_ref.Text += String.Format("\r\n");
+            textBox_ref.Text += String.Format("Максимальное отклонение численных решений на основной сетке и сетке с\r\n");
+            textBox_ref.Text += String.Format("половинным шагом наблюдается в узле x = {0}; y = {1}\r\n", ans.x_err, ans.y_err);
+            textBox_ref.Text += String.Format("В качестве начального приближения на основной сетке использовано {0}, \r\n", "интерполяция по x");
+            textBox_ref.Text += String.Format("на сетке с половинным шагом использовано {0}\r\n", "интерполяция по x");
+        }
+
+        private void ShowTable(DataGridView gridView, double start_x, double step_x, double start_y, double step_y, List<List<double>> arr, int n, int m) {
+            values = new DataTable();
+            gridView.DataSource = values;
+            //columns
+            values.Columns.Add(String.Format("x[i]"), typeof(string));
+            for (int i = 0; i <= n; ++i) values.Columns.Add(String.Format("x[{0}]", i), typeof(string));
+            //rows
+            values.Rows.Add();
+            gridView.Rows[0].HeaderCell.Value = String.Format("y[j]");
+            for (int j = 0; j <= m; ++j)
+            {
+                values.Rows.Add();
+                gridView.Rows[j + 1].HeaderCell.Value = String.Format("y[{0}]", j);
+            }
+
+            gridView[0, 0].Value = String.Format("Y\\X");
+
+            for (int i = 0; i <= n; ++i)
+                gridView[i + 1, 0].Value = String.Format("{0:f8}", start_x + i * step_x);
+
+            for (int j = 0; j <= m; ++j)
+                gridView[0, j + 1].Value = String.Format("{0:f8}", start_y + j * step_y);
+
+            for (int j = 0; j <= m; ++j)
+                for (int i = 0; i <= n; ++i)
+                    gridView[i + 1, j + 1].Value = String.Format("{0:f8}", arr[j][i]);
+
         }
 
         private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -151,46 +220,30 @@ namespace NumericalMethods_interface
                 //values.Rows.Clear();
                 //values.Columns.Clear();
 
-                values = new DataTable();
-                dataGridView1.DataSource = values;
-                //columns
-                values.Columns.Add(String.Format("x[i]"), typeof(string));
-                for (int i = 0; i <= ans.n; ++i) values.Columns.Add(String.Format("x[{0}]", i), typeof(string));
-                //rows
-                values.Rows.Add();
-                dataGridView1.Rows[0].HeaderCell.Value = String.Format("y[j]");
-                for (int j = 0; j <= ans.m; ++j) {
-                    values.Rows.Add();
-                    dataGridView1.Rows[j + 1].HeaderCell.Value = String.Format("y[{0}]", j);
-                }
-
-
-                dataGridView1[0, 0].Value = String.Format("Y\\X");
-
-
-                for (int i = 0; i <= ans.n; ++i) 
+                ShowTable(dataGridView_u1, ans.a, (ans.b - ans.a) / ans.n, ans.c, (ans.d - ans.c) / ans.m, ans.arr_u[0], ans.n, ans.m);
+                if (ans.test)
                 {
-                    dataGridView1[i+1, 0].Value = String.Format("{0:f3}", ans.coord_x[i]);
+                    ShowTable(dataGridView_u2, ans.a, (ans.b - ans.a) / ans.n, ans.c, (ans.d - ans.c) / ans.m, ans.arr_u[1], ans.n, ans.m);
                 }
-
-                for (int j = 0; j <= ans.m; ++j)
-                {
-                    dataGridView1[0, j + 1].Value = String.Format("{0:f3}", ans.coord_y[j]);
+                else {
+                    ShowTable(dataGridView_u2, ans.a, (ans.b - ans.a) / (ans.n * 2), ans.c, (ans.d - ans.c) / (ans.m * 2), ans.arr_u[1], ans.n * 2, ans.m * 2);
                 }
+                ShowTable(dataGridView_abs_err, ans.a, (ans.b - ans.a) / (ans.n), ans.c, (ans.d - ans.c) / (ans.m), ans.arr_err, ans.n, ans.m);
 
+                //MessageBox.Show(ans.test.ToString());
 
-                for (int j = 0; j <= ans.m; ++j) {
-                    for (int i = 0; i <= ans.n; ++i) {
-                        dataGridView1[i + 1, j + 1].Value = String.Format("{0:f3}", ans.v[j][i]);
-                    }
+                if (ans.test) {
+                    print_ref_for_test_task(ans);
                 }
-                print_ref_for_test_task(ans);
+                else {
+                    print_ref_for_basic_task(ans);
+                }
             }
         }
 
         private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            progressBar1.Value = e.ProgressPercentage;
+            //progressBar1.Value = e.ProgressPercentage;
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -205,6 +258,53 @@ namespace NumericalMethods_interface
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            comboBox2.SelectedIndex = 0;
+
+        }
+
+        private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            switch (comboBox2.SelectedIndex)
+            {
+                case 0:
+                textBox_Nmax2.Enabled = false;
+                textBox_eps2.Enabled = false;
+                    break;
+                case 1:
+                textBox_Nmax2.Enabled = true;
+                textBox_eps2.Enabled = true;
+                    break;
+            }
+        }
+
+        void ShowGraph(int var, bool test) {
+            if (File.Exists(path_graph))
+            {
+                ProcessStartInfo info = new ProcessStartInfo();
+                info.FileName = "python";
+                info.WindowStyle = ProcessWindowStyle.Hidden;
+                info.Arguments = String.Format(path_graph + " {0} {1}", test, var);
+                Process p = Process.Start(info);
+                p.WaitForExit();
+            }
+            else {
+                MessageBox.Show(path_graph + " not found");
+            }
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            ShowGraph(1, data.test);
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            ShowGraph(2, data.test);
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            ShowGraph(3, data.test);
         }
     }
 
@@ -214,30 +314,37 @@ namespace NumericalMethods_interface
         public int numberMethod;
         public bool test;
         // stop condition
-        public int nmax;
-        public double eps;
+        public List<int> nmax;
+        public List<double> eps;
         // area
         public int n, m;
         public double a, b, c, d;
         public string area;
         public int area_x, area_y;
         // method
-        public double param;
+        public List<double> param;
+
+        public global_data() {
+            nmax = new List<int>();
+            eps = new List<double>();
+            param = new List<double>();
+        }
     }
 
     class answer
     {
+        public double a, b, c, d;
         public int n, m;
-        public int N;
-        public int nmax;
-        public double eps;
-        public double acc;
         public double err;
-        public double R;
-        public double x, y;
-        public double param;
-        public List<List<double>> v;
-        public List<double> coord_x;
-        public List<double> coord_y;
+        public double x_err, y_err;
+        public bool test;
+        public List<double> N;
+        public List<double> nmax;
+        public List<double> eps;
+        public List<double> acc;
+        public List<double> R;
+        public List<double> param;
+        public List<List<List<double>>> arr_u;
+        public List<List<double>> arr_err;
     }
 }

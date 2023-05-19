@@ -5,60 +5,87 @@ using json = nlohmann::json;
 
 struct global_data {
   int numberVariant;
-  int numberMethod;
   bool test;
+
   // stop condition
-  int nmax;
-  double eps;
+  std::vector<int> nmax;
+  std::vector<double> eps;
+
   // area
   int n, m;
   double a, b, c, d;
   int** area;
   int area_x, area_y;
-  // method
-  double param;
 
+  // method
+  int numberMethod;
+  std::vector<double> param;
+
+  //functions
   double (*func_m)(double, double);
   double (*func_f)(double, double);
   double (*func_u)(double, double);
 
+  //part_of_answer
+  double err = LDBL_MIN;
+  double x_err = LDBL_MIN, y_err = LDBL_MIN;
+  std::vector<std::vector<std::vector<double>>> arr_u;
+  std::vector<std::vector<double>> arr_err;
+  std::vector<int> N;
+  std::vector<double> acc;
+  std::vector<double> R;
+
   // auxiliary
   std::vector<double> coord_x;
   std::vector<double> coord_y;
-};
 
-class answer {
- public:
-  int n = -1, m = -1;
-  int N = -1;
-  int nmax = -1;
-  double eps = LDBL_MAX;
-  double acc = LDBL_MIN;
-  double err = LDBL_MIN;
-  double R = LDBL_MIN;
-  //double e1;
-  double x = LDBL_MIN, y = LDBL_MIN;
-  double param = LDBL_MIN;
-  std::vector<std::vector<double>> v;
-  std::vector<double> coord_x;
-  std::vector<double> coord_y;
+  void initialize() {
+    if (test) {
+      N.resize(1);
+      acc.resize(1);
+      R.resize(1);
+    } else {
+      N.resize(2);
+      acc.resize(2);
+      R.resize(2);
+    }
+    arr_u.resize(2);
+    arr_err.resize(1);
 
-   std::string to_json() {
+    double h, k;
+    h = (b - a) / n;
+    k = (d - c) / m;
+
+    //for (int i = 0; i <= n; ++i) coord_x[i] = a + i * h;
+    //for (int j = 0; j <= m; ++j) coord_y[j] = c + j * k;
+  }
+
+  std::string get_answer() {
     json j;
+    j["a"] = a;
+    j["b"] = b;
+    j["c"] = c;
+    j["d"] = d;
     j["n"] = n;
     j["m"] = m;
     j["N"] = N;
     j["nmax"] = nmax;
     j["eps"] = eps;
+    j["test"] = test;
     j["err"] = err;
     j["acc"] = acc;
     j["R"] = R;
-    j["x"] = x;
-    j["y"] = y;
+    j["x_err"] = x_err;
+    j["y_err"] = y_err;
     j["param"] = param;
-    j["v"] = v;
-    j["coord_x"] = coord_x;
-    j["coord_y"] = coord_y;
+    j["arr_u"] = arr_u;
+    j["arr_err"] = arr_err;
     return j.dump();
-  }
+  };
+};
+
+struct result_method {
+  int count;
+  double R;
+  double acc;
 };
