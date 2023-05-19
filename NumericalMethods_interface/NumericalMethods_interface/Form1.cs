@@ -180,17 +180,20 @@ namespace NumericalMethods_interface
         }
 
         private void ShowTable(DataGridView gridView, double start_x, double step_x, double start_y, double step_y, List<List<double>> arr, int n, int m) {
-            values = new DataTable();
-            gridView.DataSource = values;
-            //columns
-            values.Columns.Add(String.Format("x[i]"), typeof(string));
-            for (int i = 0; i <= n; ++i) values.Columns.Add(String.Format("x[{0}]", i), typeof(string));
-            //rows
-            values.Rows.Add();
+            gridView.ColumnCount = n + 2;
+            gridView.RowCount = m + 2;
+
+            var col = gridView.Columns[0];
+            col.Name = String.Format("x[i]");
+            col.ValueType = typeof(string);
+            for (int i = 1; i <= n + 1; ++i) {
+                col = gridView.Columns[i];
+                col.Name = String.Format("x[{0}]", i);
+                col.ValueType = typeof(string);
+            }
             gridView.Rows[0].HeaderCell.Value = String.Format("y[j]");
             for (int j = 0; j <= m; ++j)
             {
-                values.Rows.Add();
                 gridView.Rows[j + 1].HeaderCell.Value = String.Format("y[{0}]", j);
             }
 
@@ -205,20 +208,15 @@ namespace NumericalMethods_interface
             for (int j = 0; j <= m; ++j)
                 for (int i = 0; i <= n; ++i)
                     gridView[i + 1, j + 1].Value = String.Format("{0:f8}", arr[j][i]);
-
         }
 
         private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             if (!e.Cancelled) {
-                //MessageBox.Show(backgroundWorker1.CancellationPending.ToString());
                 FileStream fs = File.Open(path_output, FileMode.Open, FileAccess.Read);
                 StreamReader reader = new StreamReader(fs);
                 answer ans = JsonConvert.DeserializeObject<answer>(reader.ReadToEnd());
                 reader.Close();
-
-                //values.Rows.Clear();
-                //values.Columns.Clear();
 
                 ShowTable(dataGridView_u1, ans.a, (ans.b - ans.a) / ans.n, ans.c, (ans.d - ans.c) / ans.m, ans.arr_u[0], ans.n, ans.m);
                 if (ans.test)
@@ -229,8 +227,6 @@ namespace NumericalMethods_interface
                     ShowTable(dataGridView_u2, ans.a, (ans.b - ans.a) / (ans.n * 2), ans.c, (ans.d - ans.c) / (ans.m * 2), ans.arr_u[1], ans.n * 2, ans.m * 2);
                 }
                 ShowTable(dataGridView_abs_err, ans.a, (ans.b - ans.a) / (ans.n), ans.c, (ans.d - ans.c) / (ans.m), ans.arr_err, ans.n, ans.m);
-
-                //MessageBox.Show(ans.test.ToString());
 
                 if (ans.test) {
                     print_ref_for_test_task(ans);
