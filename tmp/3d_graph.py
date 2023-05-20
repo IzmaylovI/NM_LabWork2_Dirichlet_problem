@@ -19,6 +19,7 @@ data = json.loads(file.read())
 test = bool(argv[1])
 var = int(argv[2])
 label = ""
+zlabel = ""
 arr = []
 a = float(data["a"])
 b = float(data["b"])
@@ -33,12 +34,14 @@ k = 0.0
 if var == 1:
 	arr = data["arr_u"][0];
 	label = "Первое решение"
+	zlabel = "u1"
 	h = (b-a)/n
 	k = (d-c)/m
 	print("var == 1")
 elif var == 2:
 	arr = data["arr_u"][1];
 	label = "Второе решение"
+	zlabel = "u2"
 	if test:
 		h = (b-a)/n
 		k = (d-c)/m
@@ -49,6 +52,7 @@ elif var == 2:
 elif var == 3:
 	arr = data["arr_err"]
 	label = "Разность решений"
+	zlabel = "|u1-u2|"
 	h = (b-a)/n
 	k = (d-c)/m
 	print("var == 3")
@@ -68,10 +72,7 @@ else:
 m = len(arr)
 n = len(arr[0])
 
-#for i in range(0, m):
-    #new_result.append([float(numeric_string) for numeric_string in result[i]])
 new_result = np.array(arr)
-#print(new_result)
 
 x = []
 for i in range(n):
@@ -85,29 +86,13 @@ xgrid, ygrid = np.meshgrid(x, y)
 
 fig = plt.figure("")
 ax = plt.axes(projection ='3d')
-ax.set_xlabel("j")
-ax.set_ylabel("i")
-ax.set_zlabel("u")
+ax.set_xlabel("x")
+ax.set_ylabel("y")
+ax.set_zlabel(zlabel)
 ax.set_title(label)
 
 #ax.plot_wireframe(xgrid, ygrid, new_result)
-ax.plot_surface(ygrid, xgrid, new_result)
-
-'''
-a = 1.; b = 2.; c = 2.; d = 3.
-h = (b-a)/n
-k = (d-c)/m
-
-V = []
-for j in range(0, m):
-    V.append([])
-    for i in range(0, n):
-        xi = i*h + a
-        yj = j*k + c
-        V[j].append(np.sin(np.pi*xi*yj))
-V = np.array(V)
-
-ax.plot_surface(ygrid, xgrid, V)
-'''
+ax.plot_surface(ygrid, xgrid, new_result, cmap='viridis', 
+                       edgecolor='black', shade = False, linewidth = 0.3)
 
 plt.show()
