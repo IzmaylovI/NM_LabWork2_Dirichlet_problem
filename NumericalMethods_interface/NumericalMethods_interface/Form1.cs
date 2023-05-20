@@ -30,7 +30,7 @@ namespace NumericalMethods_interface
         }
         private bool parseParams(global_data data) {
             data.numberVariant = 1;
-            data.numberMethod = 1;
+           // data.numberMethod = 1;
             data.a = 1;
             data.b = 2;
             data.c = 2;
@@ -50,6 +50,7 @@ namespace NumericalMethods_interface
             else if (!double.TryParse(textBox_param.Text, out param)) MessageBox.Show("Incorrect param");
             else
             {
+                data.numberMethod = comboBox1.SelectedIndex + 1;
                 data.nmax.Add(nmax1);
                 data.nmax.Add(nmax2);
                 data.eps.Add(eps1);
@@ -255,6 +256,7 @@ namespace NumericalMethods_interface
         private void Form1_Load(object sender, EventArgs e)
         {
             comboBox2.SelectedIndex = 0;
+            comboBox1.SelectedIndex = 0;
 
         }
 
@@ -301,6 +303,11 @@ namespace NumericalMethods_interface
         private void button5_Click(object sender, EventArgs e)
         {
             ShowGraph(3, data.test);
+        }
+
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            
         }
     }
 

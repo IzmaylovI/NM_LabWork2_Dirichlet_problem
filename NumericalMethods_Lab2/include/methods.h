@@ -9,7 +9,6 @@
     ans.err = err;
   }
 }*/
-
 double get_R(double** u, double** f, int** mask, int n, int m, double H,
              double K, double A) {
   double R = LDBL_MIN;
@@ -23,48 +22,6 @@ double get_R(double** u, double** f, int** mask, int n, int m, double H,
     }
   }
   return R;
-}
-
-void fill_array_func(double** arr, int** mask, int n, int m, double a, double c,
-                    double h, double k, double (*func)(double, double)) {
-  double x, y;
-  for (int j = 0; j <= m; ++j) {
-    y = c + j * k;
-    for (int i = 0; i <= n; ++i) {
-      if (mask[j][i] == 2 || mask[j][i] == 1) {
-        x = a + h * i;
-        arr[j][i] = func(x, y);
-      }
-    }
-  }
-}
-
-void set_error(std::vector<std::vector<double>>& arr1,
-               std::vector<std::vector<double>>& arr2,
-               std::vector<std::vector<double>>& arr_out,
-               int** mask, global_data& data, int step) {
-  double& err = data.err;
-  err = LDBL_MIN;
-  int _i, _j;
-  _i = _j = -1;
-  double tmp;
-  arr_out.resize(data.m + 1);
-  for (int j = 0; j <= data.m; ++j) {
-    arr_out[j].resize(data.n + 1);
-    for (int i = 0; i <= data.n; ++i) {
-      if (mask[j][i] == 2 || mask[j][i] == 1) {
-        tmp = abs(arr2[j * step][i * step] - arr1[j][i]);
-        arr_out[j][i] = tmp;
-        if (err < tmp) {
-          err = tmp;
-          _i = i;
-          _j = j;
-        }
-      }
-    }
-  }
-  data.x_err = data.a + _i * (data.b - data.a) / data.n;
-  data.y_err = data.c + _j * (data.d - data.c) / data.m;
 }
 
 result_method method_upper_relaxation(double** v, double** f, int** mask,
@@ -108,4 +65,15 @@ result_method method_upper_relaxation(double** v, double** f, int** mask,
   res.R = get_R(v, f, mask, n, m, H, K, A);
   res.acc = acc;
   return res;
+}
+
+result_method (*choose_method(int numberMethod))(double** v, double** f, int** mask, int n,
+                                 int m, double h, double k, int nmax,
+                                 double eps, const std::vector<double>& param) {
+  switch (numberMethod){ 
+  case 1:
+      return method_upper_relaxation;
+  default:
+      throw std::exception("Method don't exist");
+  }
 }

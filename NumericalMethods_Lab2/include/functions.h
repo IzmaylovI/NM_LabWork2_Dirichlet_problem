@@ -43,8 +43,3 @@ void set_function(int numberVariant, bool test, global_data& data) {
       throw std::exception("incorrect numberVariant");
     }
 }
-
-/* void choose_method() {
-    double (*_f)(double);
-    return _f;
-}*/
