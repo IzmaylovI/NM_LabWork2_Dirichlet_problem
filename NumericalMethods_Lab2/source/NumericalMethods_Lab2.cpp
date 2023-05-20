@@ -164,8 +164,6 @@ int main(int argc, char* argv[]) {
             add_result_method(1, v2, res, data);
             data.m /= 2;
             data.n /= 2;
-            //std::cout << "!";
-            //std::cout.flush();
             set_error(data.arr_u[0], data.arr_u[1], data.arr_err, mask, data,
                       2);
         }

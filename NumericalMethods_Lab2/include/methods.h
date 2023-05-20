@@ -67,12 +67,87 @@ result_method method_upper_relaxation(double** v, double** f, int** mask,
   return res;
 }
 
+result_method SimpleIterationMethod(double** v, double** f, int** mask,
+                                       int n, int m, double h, double k,
+                                       int nmax, double eps,
+                                       const std::vector<double>& param) {
+  double w = param[0];
+
+  double H = 1.0 / (h * h);
+  double K = 1.0 / (k * k);
+  double A = -2.0 * (H + K);
+
+  double R = LDBL_MIN;
+  double acc = LDBL_MAX;
+  double x, y, tmp;
+  int count = 0;
+
+  while (count < nmax && acc > eps) {
+    acc = LDBL_MIN;
+    R = LDBL_MIN;
+    for (int j = 1; j < m; ++j) {
+      for (int i = 1; i < n; ++i) {
+        if (mask[j][i] == 2) {
+          //code method
+        }
+      }
+    }
+    ++count;
+  }
+  result_method res;
+  res.count = count;
+  res.R = get_R(v, f, mask, n, m, H, K, A);
+  res.acc = acc;
+  return res;
+}
+
+
+result_method ConjugateGradientsMethod(double** v, double** f, int** mask,
+                                       int n,
+                                      int m, double h, double k, int nmax,
+                                      double eps,
+                                      const std::vector<double>& param) {
+
+  double w = param[0];
+
+  double H = 1.0 / (h * h);
+  double K = 1.0 / (k * k);
+  double A = -2.0 * (H + K);
+
+  double R = LDBL_MIN;
+  double acc = LDBL_MAX;
+  double x, y, tmp;
+  int count = 0;
+
+  while (count < nmax && acc > eps) {
+    acc = LDBL_MIN;
+    R = LDBL_MIN;
+    for (int j = 1; j < m; ++j) {
+      for (int i = 1; i < n; ++i) {
+        if (mask[j][i] == 2) {
+          // code method
+        }
+      }
+    }
+    ++count;
+  }
+  result_method res;
+  res.count = count;
+  res.R = get_R(v, f, mask, n, m, H, K, A);
+  res.acc = acc;
+  return res;
+}
+
 result_method (*choose_method(int numberMethod))(double** v, double** f, int** mask, int n,
                                  int m, double h, double k, int nmax,
                                  double eps, const std::vector<double>& param) {
   switch (numberMethod){ 
   case 1:
       return method_upper_relaxation;
+  case 2:
+      return SimpleIterationMethod;
+  case 3:
+      return ConjugateGradientsMethod;
   default:
       throw std::exception("Method don't exist");
   }

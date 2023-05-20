@@ -415,7 +415,9 @@
             // 
             this.comboBox1.FormattingEnabled = true;
             this.comboBox1.Items.AddRange(new object[] {
-            "метод верхней релаксации"});
+            "метод верхней релаксации",
+            "метод простой итерации",
+            "метод сопряженных градиентов"});
             this.comboBox1.Location = new System.Drawing.Point(126, 253);
             this.comboBox1.Name = "comboBox1";
             this.comboBox1.Size = new System.Drawing.Size(148, 24);
