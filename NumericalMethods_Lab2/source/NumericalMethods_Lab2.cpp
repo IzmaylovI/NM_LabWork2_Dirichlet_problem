@@ -56,7 +56,7 @@ void add_result_method(int pos, double** v, result_method& res, global_data& dat
     if (data.acc.size() <= pos) data.acc.resize(pos + 1);
     if (data.R.size() <= pos) data.R.resize(pos + 1);
     if (data.N.size() <= pos) data.N.resize(pos + 1);
-    copy_array(v, data.arr_u[pos], data.n + 1, data.m + 1);
+    copy_array(v, data.arr_u[pos], data.m + 1, data.n + 1);
     data.acc[pos] = res.acc;
     data.R[pos] = res.R;
     data.N[pos] = res.count;

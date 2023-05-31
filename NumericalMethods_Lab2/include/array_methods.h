@@ -142,7 +142,7 @@ void fill_border_of_array(double** arr, int** mask, const global_data& data) {
   }
 }
 
-void fill_arrays_of_coord(global_data& data) {
+/* void fill_arrays_of_coord(global_data& data) {
   data.coord_x.resize(data.n + 1);
   data.coord_y.resize(data.m + 1);
 
@@ -153,7 +153,7 @@ void fill_arrays_of_coord(global_data& data) {
 
   for (int j = 0; j <= data.m; ++j) data.coord_y[j] = c + j * k;
   for (int i = 0; i <= data.n; ++i) data.coord_x[i] = a + i * h;
-}
+}*/
 
 std::pair<double**, int**> create_area(const global_data& data) {
   std::pair<double**, int**> ans;
