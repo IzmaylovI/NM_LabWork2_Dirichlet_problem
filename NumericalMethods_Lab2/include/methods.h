@@ -107,13 +107,83 @@ result_method SimpleIterationMethod(double** v, double** f, int** mask,
   double x, y, tmp;
   int count = 0;
 
+  // eigenvalue estimates
+  double Mmin = 1000000;  // just a big number
+  double Mmax = 0;
+
+  for (int j = 1; j < m; ++j) {
+      for (int i = 1; i < n; ++i) {
+          if (mask[j][i] == 2) {
+              double center = A;
+              double radius = 0;
+              if (mask[j + 1][i] == 2)
+                  radius += K;
+              if (mask[j - 1][i] == 2)
+                  radius += K;
+              if (mask[j][i + 1] == 2)
+                  radius += H;
+              if (mask[j][i - 1] == 2)
+                  radius += H;
+
+              if (center - radius < Mmin)
+                  Mmin = center - radius;
+              if (center + radius > Mmax)
+                  Mmax = center + radius;
+          }
+      }
+  }
+
+  double tau = 2 / (Mmin + Mmax);
+
+  // zero approximation
+  for (int j = 1; j < m; ++j) {
+    for (int i = 1; i < n; ++i) {
+      if (mask[j][i] == 2) {
+        double b = -f[j][i];
+        if (mask[j][i - 1] == 1)
+          b -= v[j][i - 1] / H;
+        if (mask[j][i + 1] == 1)
+          b -= v[j][i + 1] / H;
+        if (mask[j - 1][i] == 1)
+          b -= v[j - 1][i] / K;
+        if (mask[j + 1][i] == 1)
+          b -= v[j + 1][i] / K;
+        v[j][i] = b / A;
+      }
+    }
+  }
+
+  // simple iteration method
   while (count < nmax && acc > eps) {
     acc = -LDBL_MAX;
     R = LDBL_MIN;
     for (int j = 1; j < m; ++j) {
       for (int i = 1; i < n; ++i) {
         if (mask[j][i] == 2) {
-          //code method
+            double b = -f[j][i];
+            if (mask[j][i - 1] == 1)
+                b += v[j][i - 1] / H;
+            if (mask[j][i + 1] == 1)
+                b += v[j][i + 1] / H;
+            if (mask[j - 1][i] == 1)
+                b += v[j - 1][i] / K;
+            if (mask[j + 1][i] == 1)
+                b += v[j + 1][i] / K;
+
+            double Ax = 0;
+            Ax += A * v[j][i];
+            if (mask[j + 1][i] == 2)
+                Ax += K * v[j + 1][i];
+            if (mask[j - 1][i] == 2)
+                Ax += K * v[j - 1][i];
+            if (mask[j][i + 1] == 2)
+                Ax += H * v[j][i + 1];
+            if (mask[j][i - 1] == 2)
+                Ax += H * v[j][i - 1];
+
+            double R = Ax - b;
+            acc = std::max(v[j][i], v[j][i] - tau * R);
+            v[j][i] = v[j][i] - tau * R;
         }
       }
     }
