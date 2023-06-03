@@ -93,9 +93,9 @@ result_method method_upper_relaxation(double** v, double** f, int** mask,
 }
 
 result_method SimpleIterationMethod(double** v, double** f, int** mask,
-                                       int n, int m, double h, double k,
-                                       int nmax, double eps,
-                                       const std::vector<double>& param) {
+                                    int n, int m, double h, double k,
+                                    int nmax, double eps,
+                                    const std::vector<double>& param) {
   double w = param[0];
 
   double H = 1.0 / (h * h);
@@ -112,25 +112,25 @@ result_method SimpleIterationMethod(double** v, double** f, int** mask,
   double Mmax = 0;
 
   for (int j = 1; j < m; ++j) {
-      for (int i = 1; i < n; ++i) {
-          if (mask[j][i] == 2) {
-              double center = A;
-              double radius = 0;
-              if (mask[j + 1][i] == 2)
-                  radius += K;
-              if (mask[j - 1][i] == 2)
-                  radius += K;
-              if (mask[j][i + 1] == 2)
-                  radius += H;
-              if (mask[j][i - 1] == 2)
-                  radius += H;
+    for (int i = 1; i < n; ++i) {
+      if (mask[j][i] == 2) {
+        double center = A;
+        double radius = 0;
+        if (mask[j + 1][i] == 2)
+          radius += K;
+        if (mask[j - 1][i] == 2)
+          radius += K;
+        if (mask[j][i + 1] == 2)
+          radius += H;
+        if (mask[j][i - 1] == 2)
+          radius += H;
 
-              if (center - radius < Mmin)
-                  Mmin = center - radius;
-              if (center + radius > Mmax)
-                  Mmax = center + radius;
-          }
+        if (center - radius < Mmin)
+          Mmin = center - radius;
+        if (center + radius > Mmax)
+          Mmax = center + radius;
       }
+    }
   }
 
   double tau = 2 / (Mmin + Mmax);
@@ -141,54 +141,45 @@ result_method SimpleIterationMethod(double** v, double** f, int** mask,
       if (mask[j][i] == 2) {
         double b = -f[j][i];
         if (mask[j][i - 1] == 1)
-          b -= v[j][i - 1] / H;
+          b -= v[j][i - 1] * H;
         if (mask[j][i + 1] == 1)
-          b -= v[j][i + 1] / H;
+          b -= v[j][i + 1] * H;
         if (mask[j - 1][i] == 1)
-          b -= v[j - 1][i] / K;
+          b -= v[j - 1][i] * K;
         if (mask[j + 1][i] == 1)
-          b -= v[j + 1][i] / K;
+          b -= v[j + 1][i] * K;
         v[j][i] = b / A;
       }
     }
   }
 
   // simple iteration method
+  double** v2 = create_array<double>(m + 1, n + 1);
+  copy_array(v, v2, m + 1, n + 1);
+
   while (count < nmax && acc > eps) {
     acc = -LDBL_MAX;
     R = LDBL_MIN;
     for (int j = 1; j < m; ++j) {
       for (int i = 1; i < n; ++i) {
         if (mask[j][i] == 2) {
-            double b = -f[j][i];
-            if (mask[j][i - 1] == 1)
-                b += v[j][i - 1] / H;
-            if (mask[j][i + 1] == 1)
-                b += v[j][i + 1] / H;
-            if (mask[j - 1][i] == 1)
-                b += v[j - 1][i] / K;
-            if (mask[j + 1][i] == 1)
-                b += v[j + 1][i] / K;
-
-            double Ax = 0;
-            Ax += A * v[j][i];
-            if (mask[j + 1][i] == 2)
-                Ax += K * v[j + 1][i];
-            if (mask[j - 1][i] == 2)
-                Ax += K * v[j - 1][i];
-            if (mask[j][i + 1] == 2)
-                Ax += H * v[j][i + 1];
-            if (mask[j][i - 1] == 2)
-                Ax += H * v[j][i - 1];
-
-            double R = Ax - b;
-            acc = std::max(v[j][i], v[j][i] - tau * R);
-            v[j][i] = v[j][i] - tau * R;
+          double _R = v[j][i - 1] * H + v[j][i + 1] * H + v[j - 1][i] * K
+                                      + v[j + 1][i] * K + v[j][i] * A + f[j][i];
+          double tmp = v[j][i] - tau * _R;
+          acc = std::max(acc, abs(tmp - v[j][i]));
+          v2[j][i] = tmp;
         }
       }
     }
+    std::swap(v2, v);
     ++count;
   }
+  if (count % 2 == 1) {
+    std::swap(v2, v);
+    copy_array(v2, v, m + 1, n + 1);
+  }
+  delete_array(v2);
+
   result_method res;
   res.count = count;
   res.R = get_R(v, f, mask, n, m, H, K, A);
