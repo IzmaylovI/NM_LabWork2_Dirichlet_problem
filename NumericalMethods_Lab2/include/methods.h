@@ -158,7 +158,7 @@ result_method SimpleIterationMethod(double** v, double** f, int** mask,
     copy_array(v, v2, m + 1, n + 1);
 
     while (count < nmax && acc > eps) {
-        acc = -LDBL_MIN;
+        acc = -LDBL_MAX;
         R = LDBL_MIN;
         for (int j = 1; j < m; ++j) {
             for (int i = 1; i < n; ++i) {
